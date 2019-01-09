@@ -1,10 +1,9 @@
 /* ------------------------------------------------------------------------TODO
 
--- Rename graph to graphToString().
-
 -- Study heap, matrix and graph to remember what they're supposed to do.
 
--- Modify Graph class so that it uses adj matrices instead of adj lists and the weights of edges are weight matrices as well.
+--  Make the weight matrix external to the graph class by instantiating a
+ Matrix.
 
 -----------------------------------------------------------------------------*/
 
@@ -17,6 +16,7 @@
 #include<string.h>
 #include <stdbool.h>
 #include "Graph.h"
+#include "Heap.h"
 #include "List.h"
 #include "Matrix.h"
 //#define NIL 0
@@ -31,7 +31,7 @@ typedef struct GraphObj
    int source;
 
    Matrix* adjMatrix;
-   book* beenVisited; // delete later
+   bool* beenVisited;
    int* parents;
    int* distance;
 
@@ -320,23 +320,16 @@ void addArc(Graph G, int u, int v)
 
 // Other Functions ------------------------------------------------------------
 
-// printGraph()
-// Prints the adjacency list representation of the graph.
-void printGraph(FILE* out, Graph G) // change to graphToString().
+// graphToString()
+// writes the a representation of the graph to an input file
+void graphToString(FILE* out, Graph G) // change to graphToString().
 {
    if( G==NULL )
    {
       printf("Graph Error: calling printGraph() on NULL Graph reference.\n");
       exit(1);
    }
-   matrixToString(G->adjMatrix, out);
-
-   for(int i = 1; i <= getOrder(G); i++ )
-   { 
-      fprintf( out, "%d: ",i); 
-      /* printList(out,  G->neighbors[i]); */
-      fprintf(out, "\n"); 
-   }
+   matrixToString(out, G->adjMatrix);
 }
 
 // Shortest path algorithms and helper functions ------------------------------ 
@@ -352,15 +345,15 @@ void printGraph(FILE* out, Graph G) // change to graphToString().
 /*   { */
 /*     int x = extractMin(heap); */
 
-/*     for( moveFront(G->adjList[x]); */
-/* 	 index(G->adjList[x]) != -1; */
-/* 	 moveNext(G->adjList[x]) ) */
-/*     { */
-/*       y = get(G->adjList[x]); */
-/*       relax(heap, G, x, y); */
-/*     } */
-/*   } */
-/* } */
+    for( moveFront(G->adjList[x]);
+	 index(G->adjList[x]) != -1;
+	 moveNext(G->adjList[x]) )
+    {
+      y = get(G->adjList[x]);
+      relax(heap, G, x, y);
+    }
+  }
+}
 
 // initialize()
 // Initializes all vertices in G to a state that's ideal for path algorithms.
