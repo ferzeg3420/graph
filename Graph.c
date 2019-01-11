@@ -1,16 +1,19 @@
 /* ------------------------------------------------------------------------TODO
 
--- Make sure that the change I made to newHeap makes sense.
+-- Change the names of functions in EntryList to reflect his change of name. 
+Maybe change the names of functions like Index to intListIndex or 
+entryListIndex.
 
--- Write a getMatrixData(Matrix M, int column, int row ).
+-- Change the #includes in Matrix.h, Heap.h, Graph.h to reflect the change of
+names in List.h.
 
--- Update all the heap, matrix, list, and Matrix versions in all my files to
- the latests.
+-- Chage the #includes in the .c files of the ADTs listed in the previous 
+entry of my todo queue.
 
--- Study heap, matrix and graph to remember what they're supposed to do.
+-- Test all the heap, matrix, list, and Matrix versions in all my files to
+ make sure they work.
 
---  Make the weight matrix external to the graph class by instantiating a
- Matrix.
+-- Study heap, matrix and graph.
 
 -----------------------------------------------------------------------------*/
 
@@ -356,7 +359,7 @@ void djikstrasAlgorithm(Graph G, Matrix weights, int source)
 {
    initialize(G, source);
    List visited = newList();
-   Heap heap = newHeap( G->order, &(G->distances) );
+   Heap heap = newHeap( G->order, &(G->distance) );
    int x, y;
    while( !isEmpty(heap) )
    {
