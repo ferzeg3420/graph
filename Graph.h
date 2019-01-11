@@ -7,6 +7,8 @@
 #define _GRAPH_H_INCLUDE_
 #include<stdio.h>
 #include "List.h"
+#include "Heap.h"
+#include "Matrix.h"
 #define NIL  0
 #define INF  -2
 typedef struct GraphObj* Graph;
@@ -23,13 +25,13 @@ void freeGraph(Graph* pG);
 
 // Access functions -----------------------------------------------------------
 
-// getOrder()
+// getGraphOrder()
 // Returns the order of the graph (number of vertices).
-int getOrder(Graph G);
+int getGraphOrder(Graph G);
 
-// getSize()
+// getGraphSize()
 // Returns the size of the graph (the number of edges).
-int getSize(Graph G);
+int getGraphSize(Graph G);
 
 // getSource()
 // Returns the vertex that was most recently the source of BFS() or NIL
@@ -81,7 +83,7 @@ void BFS(Graph G, int s);
 
 // dijkstrasAlgorithm()
 // Finds the minimumal path from the source to any vector reachable from it.
-//void djikstrasAlgorithm(Graph G, int source);
+void djikstrasAlgorithm(Graph G, Matrix weights, int source);
 
 // initialize()
 // Initializes all vertices in G to a state that's ideal for path algorithms.
@@ -90,7 +92,7 @@ void initialize(Graph G, int source);
 // relax()
 // If the new path from vertex x to y is shorter than the previous recorded
 // path change the distance reported by vertex Y.
-void relax(Heap H, Graph G, int vertexX, int vertexY);
+void relax(Heap H, Graph G, Matrix weights, int vertexX, int vertexY);
 
 // printGraph()
 // Prints the adjacency list representation of the graph.

@@ -1,5 +1,12 @@
 /* ------------------------------------------------------------------------TODO
 
+-- Make sure that the change I made to newHeap makes sense.
+
+-- Write a getMatrixData(Matrix M, int column, int row ).
+
+-- Update all the heap, matrix, list, and Matrix versions in all my files to
+ the latests.
+
 -- Study heap, matrix and graph to remember what they're supposed to do.
 
 --  Make the weight matrix external to the graph class by instantiating a
@@ -30,7 +37,7 @@ typedef struct GraphObj
    int size;
    int source;
 
-   Matrix* adjMatrix;
+   List* neighbors;
    bool* beenVisited;
    int* parents;
    int* distance;
@@ -48,13 +55,14 @@ Graph newGraph(int n)
    G->order = n; 
    G->size = 0;
    G->source = NIL;
-   G->adjMatrix = newMatrix(n);
-   G->beenVisited = (bool *)malloc( (n + 1) * sizeof(bool)); 
-   G->parents = (int *)malloc( 
-   G->distance = (int *)malloc( (n + 1) * sizeof(int));
+   G->neighbors = (List *)malloc( (n + 1) * sizeof(List) );
+   G->beenVisited = (bool *)malloc( (n + 1) * sizeof(bool) ); 
+   G->parents = (int *)malloc( (n + 1) * sizeof(int) );
+   G->distance = (int *)malloc( (n + 1) * sizeof(int) );
 
    for( int i = 0; i <= n; i++ )
    {
+      G->neighbors[i] = newList();
       G->beenVisited[i] = false;
       G->parents[i] = NIL;
       G->distance[i] = INF;
@@ -71,9 +79,12 @@ void freeGraph(Graph* pG)
       printf("Graph Error: calling freeGraph() on NULL Graph reference.\n");
       exit(1);
    }
-   int n =  getOrder(*pG);
+   int n =  getGraphOrder(*pG);
 
-   freeMatrix( &((*pG)->adjMatrix) );
+   for( int i = 0; i <= n; i++ )
+   {
+      freeList( &((*pG)->neighbors[i]) );
+   }
 
    free( (*pG)->beenVisited );
    free( (*pG)->parents );
@@ -87,25 +98,25 @@ void freeGraph(Graph* pG)
 
 // Access functions -----------------------------------------------------------
 
-// getOrder()
+// getGraphOrder()
 // Returns the order of the graph (number of vertices).
-int getOrder(Graph G)
+int getGraphOrder(Graph G)
 {
    if( G==NULL )
    {
-      printf("Graph Error: calling getOrder() on NULL Graph reference.\n");
+      printf("Graph Error: calling getGraphOrder() on NULL Graph reference.\n");
       exit(1);
    }
    return G->order;
 }
 
-// getSize()
+// getGraphSize()
 // Returns the size of the graph (the number of edges).
-int getSize(Graph G)
+int getGraphSize(Graph G)
 {
    if( G==NULL )
    {
-      printf("Graph Error: calling getSize() on NULL Graph reference.\n");
+      printf("Graph Error: calling getGraphSize() on NULL Graph reference.\n");
       exit(1);
    }
    return G->size;
@@ -135,7 +146,7 @@ int getParent(Graph G, int u)
       printf("Graph Error: calling getParent() on NULL Graph reference.\n");
       exit(1);
    }
-   if( u <= 0 || getOrder(G) < u)
+   if( u <= 0 || getGraphOrder(G) < u)
    {
       printf("Graph Error: calling getParent() for an out of bounds vertex.\n");
       exit(1);
@@ -154,7 +165,7 @@ int getDist(Graph G, int u)
       printf("Graph Error: calling getDist() on NULL Graph reference.\n");
       exit(1);
    }
-   if( u <= 0 || getOrder(G) < u)
+   if( u <= 0 || getGraphOrder(G) < u)
    {
       printf("Graph Error: calling getDist() for an out of bounds vertex.\n");
       exit(1);
@@ -180,7 +191,7 @@ void getPath(List L, Graph G, int u)
              "BFS() has never been called.\n");
       exit(1);
    }
-   if( u <= 0 || getOrder(G) < u)
+   if( u <= 0 || getGraphOrder(G) < u)
    {
       printf("Graph Error: calling BFS() with an out of bounds source.\n");
       exit(1);
@@ -213,10 +224,10 @@ void makeNull(Graph G)
       printf("Graph Error: calling makeNull() on NULL Graph reference.\n");
       exit(1);
    }
-   /* for( int i = 1; i <= getSize(G); i++ )  */
-   /* { */
-   /*    clear( G->neighbors[i] ); */
-   /* } */ // clear matrix.
+   for( int i = 1; i <= getGraphSize(G); i++ )
+   {
+      clear( G->neighbors[i] );
+   }
    G->size = 0;
 }
 
@@ -231,14 +242,14 @@ void addEdge(Graph G, int u, int v)
       printf("Graph Error: calling addEdge() on NULL Graph reference.\n");
       exit(1);
    }
-   if( u <= 0 || getOrder(G) < u || v <= 0 || getOrder(G) < v )
+   if( u <= 0 || getGraphOrder(G) < u || v <= 0 || getGraphOrder(G) < v )
    {
       printf("Graph Error: calling addEdge() for (an) out of bounds\n"
              "vertex (or vertices).\n");
       exit(1);
    }
-   /* insertInOrder( &(G->neighbors[u]), v ); */
-   /* insertInOrder( &(G->neighbors[v]), u ); */
+   insertInOrder( &(G->neighbors[u]), v );
+   insertInOrder( &(G->neighbors[v]), u );
    (G->size)++;
 }
 
@@ -252,71 +263,71 @@ void addArc(Graph G, int u, int v)
       printf("Graph Error: calling addArc() on NULL Graph reference.\n");
       exit(1);
    }
-   if( u <= 0 || getOrder(G) < u || v <= 0 || getOrder(G) < v )
+   if( u <= 0 || getGraphOrder(G) < u || v <= 0 || getGraphOrder(G) < v )
    {
       printf("Graph Error: calling addArc() for (an) out of bounds"
              "vertex (or vertices).\n");
       exit(1);
    }
-   /* insertInOrder( &(G->neighbors[u]), v ); */
+   insertInOrder( &(G->neighbors[u]), v );
    (G->size)++;
 }
 
 // BFS()  // NOT WORKING IN THIS IMPLEMENTATION!
 // Implements the breadth first search algorithm.
 // precondition source is not out of bounds.
-/* void BFS(Graph G, int s) */
-/* { */
-/*    if( G==NULL ) */
-/*    { */
-/*       printf("Graph Error: calling BFS() on NULL Graph reference.\n"); */
-/*       exit(1); */
-/*    } */
-/*    if( s <= 0 || getOrder(G) < s) */
-/*    { */
-/*       printf("Graph Error: calling BFS() with an out of bounds source.\n"); */
-/*       exit(1); */
-/*    } */
-/*    List Q = newList(); */
-/*    List * workingAdjList; */
-/*    int v = 0, u = 0; */
+void BFS(Graph G, int s)
+{
+   if( G==NULL )
+   {
+      printf("Graph Error: calling BFS() on NULL Graph reference.\n");
+      exit(1);
+   }
+   if( s <= 0 || getGraphOrder(G) < s)
+   {
+      printf("Graph Error: calling BFS() with an out of bounds source.\n");
+      exit(1);
+   }
+   List Q = newList();
+   List * workingAdjList;
+   int v = 0, u = 0;
 
-/*    G->source = s; */
+   G->source = s;
    
-/*    for( int i = 1; i <= getOrder(G); i++ ) */
-/*    { */
-/*       G->beenVisited[i] = false; */
-/*       G->distance[i] = INF; */
-/*       G->parents[i] = NIL; */
-/*    } */
-/*    G->beenVisited[s] = true; */
-/*    G->distance[s] = 0; */
+   for( int i = 1; i <= getGraphOrder(G); i++ )
+   {
+      G->beenVisited[i] = false;
+      G->distance[i] = INF;
+      G->parents[i] = NIL;
+   }
+   G->beenVisited[s] = true;
+   G->distance[s] = 0;
 
-/*    append(Q, s); */
+   append(Q, s);
 
-/*    while( length(Q) != 0 ) */
-/*    { */
-/*       u = front(Q); */
-/*       deleteFront(Q); */
+   while( length(Q) != 0 )
+   {
+      u = front(Q);
+      deleteFront(Q);
    
-/*       workingAdjList = &(G->neighbors[u]); */
-/*       for */
-/*       ( moveFront(*workingAdjList); */
-/*         index(*workingAdjList) != -1; */
-/*         moveNext(*workingAdjList) */
-/*       ){ */
-/*          v = get(*workingAdjList); */
-/*          if( !(G->beenVisited[v]) ) */
-/*          { */
-/*             G->beenVisited[v] = true; */
-/*             G->distance[v] = G->distance[u] + 1; */
-/*             G->parents[v] = u; */
-/*             append(Q, v); */
-/*          } */
-/*       } */
-/*    } */
-/*    freeList(&Q); */
-/* } */  // NOT WORKING IN THIS IMPLEMENTATION!
+      workingAdjList = &(G->neighbors[u]);
+      for
+      ( moveFront(*workingAdjList);
+        Index(*workingAdjList) != -1;
+        moveNext(*workingAdjList)
+      ){
+         v = get(*workingAdjList);
+         if( !(G->beenVisited[v]) )
+         {
+            G->beenVisited[v] = true;
+            G->distance[v] = G->distance[u] + 1;
+            G->parents[v] = u;
+            append(Q, v);
+         }
+      }
+   }
+   freeList(&Q);
+}  // PROBABLY NOT WORKING IN THIS IMPLEMENTATION!
 
 // Other Functions ------------------------------------------------------------
 
@@ -329,30 +340,36 @@ void graphToString(FILE* out, Graph G) // change to graphToString().
       printf("Graph Error: calling printGraph() on NULL Graph reference.\n");
       exit(1);
    }
-   matrixToString(out, G->adjMatrix);
+   for(int i = 1; i <= getOrder(G); i++ )
+   { 
+      fprintf( out, "%d: ",i); 
+      printList(out,  G->neighbors[i]);
+      fprintf(out, "\n"); 
+   }
 }
 
 // Shortest path algorithms and helper functions ------------------------------ 
 
 // dijkstrasAlgorithm()
 // Finds the minimumal path from the source to any vector reachable from it.
-/* void djikstrasAlgorithm(Graph G, int source)  */
-/* { */
-/*   initialize(G, source); */
-/*   List visited = newList(); */
-/*   Heap heap = newHeap(G->distances[], G->order); */
-/*   while( !isEmpty(heap) ) */
-/*   { */
-/*     int x = extractMin(heap); */
+void djikstrasAlgorithm(Graph G, Matrix weights, int source)
+{
+   initialize(G, source);
+   List visited = newList();
+   Heap heap = newHeap( G->order, &(G->distances) );
+   int x, y;
+   while( !isEmpty(heap) )
+   {
+      x = extractMin(heap);
 
-    for( moveFront(G->adjList[x]);
-	 index(G->adjList[x]) != -1;
-	 moveNext(G->adjList[x]) )
-    {
-      y = get(G->adjList[x]);
-      relax(heap, G, x, y);
-    }
-  }
+      for( moveFront(G->neighbors[x]);
+           Index(G->neighbors[x]) != -1;
+           moveNext(G->neighbors[x]) )
+      {
+         y = get(G->neighbors[x]);
+         relax(heap, G, weights, x, y);
+      }
+   }
 }
 
 // initialize()
@@ -370,11 +387,10 @@ void initialize(Graph G, int source)
 // relax()
 // If the new path from vertex x to y is shorter than the previous recorded
 // path change the distance reported by vertex Y.
-void relax(Heap H, Graph G, int vertexX, int vertexY)
+void relax(Heap H, Graph G, Matrix weights, int vertexX, int vertexY)
 {
-   //  int newDistance = G->distance[vertexX] + weight(G, vertexX, vertexY);
-   int newDistance = G->distance[vertexX];
-   if( G->dist[vertexY] > newDistance )
+   int newDistance = G->distance[vertexX] + getweights(G, vertexX, vertexY);
+   if( G->distance[vertexY] > newDistance )
    {
       G->parents[vertexY] = vertexX;
       G->distance[vertexY] = newDistance;
