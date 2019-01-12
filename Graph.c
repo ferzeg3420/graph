@@ -1,9 +1,4 @@
 /* ------------------------------------------------------------------------TODO
-
--- Change the names of functions in EntryList to reflect his change of name. 
-Maybe change the names of functions like Index to intListIndex or 
-entryListIndex.
-
 -- Change the #includes in Matrix.h, Heap.h, Graph.h to reflect the change of
 names in List.h.
 
@@ -26,9 +21,6 @@ entry of my todo queue.
 #include<string.h>
 #include <stdbool.h>
 #include "Graph.h"
-#include "Heap.h"
-#include "List.h"
-#include "Matrix.h"
 //#define NIL 0
 //#define INF -2 // -2 to not get confused with the undefined index of a list.
 
@@ -58,14 +50,14 @@ Graph newGraph(int n)
    G->order = n; 
    G->size = 0;
    G->source = NIL;
-   G->neighbors = (List *)malloc( (n + 1) * sizeof(List) );
+   G->neighbors = (IntList *)malloc( (n + 1) * sizeof(IntList) );
    G->beenVisited = (bool *)malloc( (n + 1) * sizeof(bool) ); 
    G->parents = (int *)malloc( (n + 1) * sizeof(int) );
    G->distance = (int *)malloc( (n + 1) * sizeof(int) );
 
    for( int i = 0; i <= n; i++ )
    {
-      G->neighbors[i] = newList();
+      G->neighbors[i] = newIntList();
       G->beenVisited[i] = false;
       G->parents[i] = NIL;
       G->distance[i] = INF;
@@ -86,7 +78,7 @@ void freeGraph(Graph* pG)
 
    for( int i = 0; i <= n; i++ )
    {
-      freeList( &((*pG)->neighbors[i]) );
+      freeIntList( &((*pG)->neighbors[i]) );
    }
 
    free( (*pG)->beenVisited );
@@ -181,7 +173,7 @@ int getDist(Graph G, int u)
 // source to u. Appends to L the value of NIL if no such path exists.
 // Precondition: getSource(G) != NIL.
 // Precondition: 1<= u < order of the graph.
-void getPath(List L, Graph G, int u)
+void getPath(IntList L, Graph G, int u)
 {
    if( G==NULL )
    {
@@ -201,17 +193,17 @@ void getPath(List L, Graph G, int u)
    }
    if (G->parents[u] == 0 && G->source != u)
    {
-     append(L, NIL);
+     IntListAppend(L, NIL);
      return;
    }
-   append(L, u);
+   IntListAppend(L, u);
    int v = G->parents[u];
    
-   moveBack(L);
+   IntListMoveBack(L);
    while( v != NIL )
    {
-      insertBefore(L, v);
-      movePrev(L);
+      IntListInsertBefore(L, v);
+      IntListMovePrev(L);
       v = G->parents[v];
    }
 }
@@ -229,7 +221,7 @@ void makeNull(Graph G)
    }
    for( int i = 1; i <= getGraphSize(G); i++ )
    {
-      clear( G->neighbors[i] );
+      IntListClear( G->neighbors[i] );
    }
    G->size = 0;
 }
@@ -251,8 +243,8 @@ void addEdge(Graph G, int u, int v)
              "vertex (or vertices).\n");
       exit(1);
    }
-   insertInOrder( &(G->neighbors[u]), v );
-   insertInOrder( &(G->neighbors[v]), u );
+   IntListInsertInOrder( &(G->neighbors[u]), v );
+   IntListInsertInOrder( &(G->neighbors[v]), u );
    (G->size)++;
 }
 
@@ -272,7 +264,7 @@ void addArc(Graph G, int u, int v)
              "vertex (or vertices).\n");
       exit(1);
    }
-   insertInOrder( &(G->neighbors[u]), v );
+   IntListInsertInOrder( &(G->neighbors[u]), v );
    (G->size)++;
 }
 
@@ -291,8 +283,8 @@ void BFS(Graph G, int s)
       printf("Graph Error: calling BFS() with an out of bounds source.\n");
       exit(1);
    }
-   List Q = newList();
-   List * workingAdjList;
+   IntList Q = newList();
+   IntList * workingAdjList;
    int v = 0, u = 0;
 
    G->source = s;
@@ -306,30 +298,30 @@ void BFS(Graph G, int s)
    G->beenVisited[s] = true;
    G->distance[s] = 0;
 
-   append(Q, s);
+   IntListAppend(Q, s);
 
    while( length(Q) != 0 )
    {
       u = front(Q);
-      deleteFront(Q);
+      IntListDeleteFront(Q);
    
       workingAdjList = &(G->neighbors[u]);
       for
-      ( moveFront(*workingAdjList);
-        Index(*workingAdjList) != -1;
-        moveNext(*workingAdjList)
+      ( IntListMoveFront(*workingAdjList);
+        IntListIndex(*workingAdjList) != -1;
+        IntListMoveNext(*workingAdjList)
       ){
-         v = get(*workingAdjList);
+         v = IntListGet(*workingAdjList);
          if( !(G->beenVisited[v]) )
          {
             G->beenVisited[v] = true;
             G->distance[v] = G->distance[u] + 1;
             G->parents[v] = u;
-            append(Q, v);
+            IntListAppend(Q, v);
          }
       }
    }
-   freeList(&Q);
+   freeIntList(&Q);
 }  // PROBABLY NOT WORKING IN THIS IMPLEMENTATION!
 
 // Other Functions ------------------------------------------------------------
@@ -343,10 +335,10 @@ void graphToString(FILE* out, Graph G) // change to graphToString().
       printf("Graph Error: calling printGraph() on NULL Graph reference.\n");
       exit(1);
    }
-   for(int i = 1; i <= getOrder(G); i++ )
+   for(int i = 1; i <= getGraphOrder(G); i++ )
    { 
       fprintf( out, "%d: ",i); 
-      printList(out,  G->neighbors[i]);
+      intListToString(out,  G->neighbors[i]);
       fprintf(out, "\n"); 
    }
 }
@@ -358,18 +350,18 @@ void graphToString(FILE* out, Graph G) // change to graphToString().
 void djikstrasAlgorithm(Graph G, Matrix weights, int source)
 {
    initialize(G, source);
-   List visited = newList();
+   IntList visited = newIntList();
    Heap heap = newHeap( G->order, &(G->distance) );
    int x, y;
-   while( !isEmpty(heap) )
+   while( getHeapSize(heap) != 0 )
    {
-      x = extractMin(heap);
+      x = heapExtractMin(heap);
 
-      for( moveFront(G->neighbors[x]);
-           Index(G->neighbors[x]) != -1;
-           moveNext(G->neighbors[x]) )
+      for( IntListMoveFront(G->neighbors[x]);
+           IntListIndex(G->neighbors[x]) != -1;
+           IntListMoveNext(G->neighbors[x]) )
       {
-         y = get(G->neighbors[x]);
+         y = IntListGet(G->neighbors[x]);
          relax(heap, G, weights, x, y);
       }
    }
@@ -392,11 +384,14 @@ void initialize(Graph G, int source)
 // path change the distance reported by vertex Y.
 void relax(Heap H, Graph G, Matrix weights, int vertexX, int vertexY)
 {
-   int newDistance = G->distance[vertexX] + getweights(G, vertexX, vertexY);
+   int newDistance =
+      G->distance[vertexX]
+      + getMatrixEntryData(weights, vertexX, vertexY);
+
    if( G->distance[vertexY] > newDistance )
    {
       G->parents[vertexY] = vertexX;
       G->distance[vertexY] = newDistance;
-      decreaseKey(H, vertexY, newDistance);
+      heapDecreaseKey(H, vertexY, newDistance);
    }
 }

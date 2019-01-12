@@ -6,9 +6,9 @@
 #ifndef _GRAPH_H_INCLUDE_
 #define _GRAPH_H_INCLUDE_
 #include<stdio.h>
-#include "List.h"
 #include "Heap.h"
 #include "Matrix.h"
+#include "IntList.h"
 #define NIL  0
 #define INF  -2
 typedef struct GraphObj* Graph;
@@ -51,11 +51,11 @@ int getParent(Graph G, int u);
 int getDist(Graph G, int u);
 
 // getPath()
-// Appends to the List L the vertices of the shortest path in G from 
+// Appends to the IntList L the vertices of the shortest path in G from 
 // source to u. Appends to L the value of NIL if no such path exists.
 // Precondition: getSource(G) != NIL.
 // Precondition: 1<= u < order of the graph.
-void getPath(List L, Graph G, int u);
+void getPath(IntList L, Graph G, int u);
 
 // Manipulation procedures ----------------------------------------------------
 
